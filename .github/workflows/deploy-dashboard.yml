@@ -55,22 +55,22 @@ jobs:
           # Execute deployment commands
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << 'ENDSSH'
             # Create backup of current deployment
-            if [ -d "~/easy-task-front" ]; then
+            if [ -d "/var/www/easy-task-front" ]; then
               timestamp=$(date +%Y%m%d%H%M%S)
               mkdir -p ~/backups
-              tar -czf ~/backups/easy-task-front-$timestamp.tar.gz -C ~/easy-task-front .
+              tar -czf ~/backups/easy-task-front-$timestamp.tar.gz -C /var/www/easy-task-front .
             fi
             
             # Prepare deployment directory
-            mkdir -p ~/easy-task-front
+            mkdir -p /var/www/easy-task-front
             
             # Extract new deployment
-            tar -xzf ~/easy-task-front-temp.tar.gz -C ~/easy-task-front
+            tar -xzf ~/easy-task-front-temp.tar.gz -C /var/www/easy-task-front
             rm ~/easy-task-front-temp.tar.gz
             #!/bin/bash
 
             # Navigate to project directory
-            cd ~/easy-task-front || exit
+            cd /var/www/easy-task-front || exit
 
             # Restart the Nginx service
             sudo nginx -s reload
