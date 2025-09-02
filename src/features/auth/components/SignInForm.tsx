@@ -1,10 +1,7 @@
 import * as React from "react";
-import { AppProvider } from "@toolpad/core/AppProvider";
-import { useTheme } from "@mui/material/styles";
-import { AuthProvider, SignInPage } from "@toolpad/core";
-import { TextField, Button, Alert } from "@mui/material";
+import { TextField, Alert } from "@mui/material";
 import "../styles/form-page.css";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { signIn } from "../services/auth";
 import {
