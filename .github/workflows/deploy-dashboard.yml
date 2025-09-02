@@ -1,0 +1,78 @@
+name: Deploy Dashboard to AWS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**"
+      - "!.github/workflows/**"
+      - ".github/workflows/deploy-dashboard.yml"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build
+
+      - name: Set up SSH
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DEPLOY_KEY }}
+          if_key_exists: replace
+          known_hosts: unnecessary
+          config: |
+            Host *
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+
+      - name: Create deployment bundle
+        run: |
+          mkdir -p deployment
+          cp -r build deployment/
+          # cp -r generated deployment/
+          tar -czf deployment.tar.gz -C deployment .
+
+      - name: Deploy to AWS
+        run: |
+          # Transfer files
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deployment.tar.gz ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}:~/easy-task-front-temp.tar.gz
+
+          # Execute deployment commands
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << 'ENDSSH'
+            # Create backup of current deployment
+            if [ -d "~/easy-task-front" ]; then
+              timestamp=$(date +%Y%m%d%H%M%S)
+              mkdir -p ~/backups
+              tar -czf ~/backups/easy-task-front-$timestamp.tar.gz -C ~/easy-task-front .
+            fi
+            
+            # Prepare deployment directory
+            mkdir -p ~/easy-task-front
+            
+            # Extract new deployment
+            tar -xzf ~/easy-task-front-temp.tar.gz -C ~/easy-task-front
+            rm ~/easy-task-front-temp.tar.gz
+            #!/bin/bash
+
+            # Navigate to project directory
+            cd ~/easy-task-front || exit
+
+            # Restart the Nginx service
+            sudo nginx -s reload
+
+          ENDSSH
