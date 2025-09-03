@@ -1,5 +1,6 @@
 import * as React from "react";
-import { TextField, Alert } from "@mui/material";
+import { TextField, Alert, IconButton, InputAdornment } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import "../styles/form-page.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -14,6 +15,7 @@ export default function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [nameValidation, setNameValidations] = useState<string | null>(null);
   const [emailValidation, setEmailValidations] = useState<string | null>(null);
   const [passwordValidation, setPasswordValidations] = useState<string | null>(
@@ -21,17 +23,30 @@ export default function SignUpForm() {
   );
   const [alert, setAlert] = useState<string | null>(null);
   const navigate = useNavigate();
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nameError = validateName(e.target.value);
     setNameValidations(nameError);
   };
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const emailError = validateEmail(e.target.value);
     setEmailValidations(emailError);
   };
+
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const passwordError = validatePassword(e.target.value);
     setPasswordValidations(passwordError);
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,7 +120,7 @@ export default function SignUpForm() {
               required
               id="password-input"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               defaultValue=""
               variant="outlined"
@@ -113,6 +128,20 @@ export default function SignUpForm() {
               onChange={(e) => {
                 setPassword(e.target.value);
                 handlePasswordChange(e as React.ChangeEvent<HTMLInputElement>);
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
               }}
             />
             {passwordValidation && (
